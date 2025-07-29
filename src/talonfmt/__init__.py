@@ -127,7 +127,12 @@ def talonfmt(
     if safe or (safe is None and __debug__):
         ast_for_formatted = parse(formatted, encoding=encoding, raise_parse_error=True)
         # assert: parsing output results in a similar AST
-        ast.assert_equivalent(ast_for_formatted)
+        try:
+            ast.assert_equivalent(ast_for_formatted)
+        except AssertionError as e:
+            raise AssertionError(
+                f"Formatting {filename or 'input'} changes the parse tree: {e}"
+            ) from None
 
         # assert: formatting twice results in the same output
         assert formatted == render(
