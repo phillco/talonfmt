@@ -570,9 +570,32 @@ class TalonFormatter:
 
     @format.register
     def _(self, node: TalonChoice) -> Doc:
-        children = self.format_children(node.children)
+        # group optional start/end anchors with the rule they apply to
+        groups: list[Doc] = []
+        children = list(node.children)
+        i = 0
+        start_anchor = False
+        while i < len(children):
+            child = children[i]
+            if isinstance(child, TalonStartAnchor):
+                start_anchor = True
+                i += 1
+                continue
+            if isinstance(child, TalonEndAnchor):
+                # attach end anchor to previous group if any
+                if groups:
+                    groups[-1] = groups[-1] / "$"
+                i += 1
+                continue
+            doc = self.format(child)
+            if start_anchor:
+                doc = Text("^") / doc
+                start_anchor = False
+            groups.append(doc)
+            i += 1
+
         operator = Space / "|" / Space
-        return operator.join(children)
+        return operator.join(groups)
 
     @format.register
     def _(self, node: TalonEndAnchor) -> Doc:
