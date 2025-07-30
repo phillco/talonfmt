@@ -653,7 +653,10 @@ class TalonFormatter:
                     groups[-1] = groups[-1] / "$"
                 i += 1
                 continue
-            doc = self.format(child)
+            if isinstance(child, TalonParenthesizedRule):
+                doc = self._format_parenthesized_rule(child, allow_shrink=False)
+            else:
+                doc = self.format(child)
             if start_anchor:
                 doc = Text("^") / doc
                 start_anchor = False
