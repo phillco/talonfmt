@@ -128,6 +128,19 @@ def _TalonString_assert_equivalent(self: TalonString, other: Node) -> None:
 setattr(TalonString, "assert_equivalent", _TalonString_assert_equivalent)
 
 
+def _TalonCommandDeclaration_assert_equivalent(
+    self: TalonCommandDeclaration, other: Node
+) -> None:
+    assert isinstance(other, TalonCommandDeclaration)
+
+
+setattr(
+    TalonCommandDeclaration,
+    "assert_equivalent",
+    _TalonCommandDeclaration_assert_equivalent,
+)
+
+
 def _TalonParenthesized_assert_equivalent(self: Node, other: Node) -> None:
     assert isinstance(other, Node)
     if isinstance(other, (TalonParenthesizedExpression, TalonParenthesizedRule)):
