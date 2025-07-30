@@ -128,6 +128,21 @@ def _TalonString_assert_equivalent(self: TalonString, other: Node) -> None:
 setattr(TalonString, "assert_equivalent", _TalonString_assert_equivalent)
 
 
+def _TalonCommandDeclaration_assert_equivalent(
+    self: TalonCommandDeclaration, other: Node
+) -> None:
+    assert isinstance(other, TalonCommandDeclaration)
+    self.left.assert_equivalent(other.left)
+    self.right.assert_equivalent(other.right)
+
+
+setattr(
+    TalonCommandDeclaration,
+    "assert_equivalent",
+    _TalonCommandDeclaration_assert_equivalent,
+)
+
+
 def _TalonParenthesized_assert_equivalent(self: Node, other: Node) -> None:
     assert isinstance(other, Node)
     if isinstance(other, (TalonParenthesizedExpression, TalonParenthesizedRule)):
@@ -626,6 +641,12 @@ class TalonFormatter:
         # group optional start/end anchors with the rule they apply to
         groups: list[Doc] = []
         children = list(node.children)
+        rule_children = [
+            c
+            for c in children
+            if not isinstance(c, (TalonStartAnchor, TalonEndAnchor))
+        ]
+        multiple = len(rule_children) > 1
         i = 0
         start_anchor = False
         while i < len(children):
@@ -640,7 +661,10 @@ class TalonFormatter:
                     groups[-1] = groups[-1] / "$"
                 i += 1
                 continue
-            doc = self.format(child)
+            if isinstance(child, TalonParenthesizedRule) and multiple:
+                doc = self._format_parenthesized_rule(child, allow_shrink=False)
+            else:
+                doc = self.format(child)
             if start_anchor:
                 doc = Text("^") / doc
                 start_anchor = False

@@ -1,0 +1,5 @@
+input: |
+  ^window bring ((others | all) | to front): user.menu_select("Window|Bring All to Front")
+output: |
+  ^window bring ((others | all) | to front):
+      user.menu_select("Window|Bring All to Front")
