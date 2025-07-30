@@ -1,0 +1,5 @@
+input: |
+  say ((foo | bar)): "bar"
+output: |
+  say (foo | bar):
+      "bar"

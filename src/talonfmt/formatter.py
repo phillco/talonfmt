@@ -22,7 +22,15 @@ from doc_printer import (
     row,
     smart_quote,
 )
-from doc_printer.doc import splat
+from doc_printer.doc import (
+    Alt,
+    Cat,
+    Edit,
+    Nest,
+    Row,
+    Table,
+    splat,
+)
 from tree_sitter_talon import (
     Node,
     TalonAction,
@@ -118,6 +126,46 @@ def _TalonString_assert_equivalent(self: TalonString, other: Node) -> None:
 
 
 setattr(TalonString, "assert_equivalent", _TalonString_assert_equivalent)
+
+
+def _TalonParenthesized_assert_equivalent(self: Node, other: Node) -> None:
+    assert isinstance(other, Node)
+    if isinstance(other, (TalonParenthesizedExpression, TalonParenthesizedRule)):
+        self.get_child().assert_equivalent(other.get_child())
+    else:
+        self.get_child().assert_equivalent(other)
+
+
+setattr(
+    TalonParenthesizedExpression,
+    "assert_equivalent",
+    _TalonParenthesized_assert_equivalent,
+)
+setattr(
+    TalonParenthesizedRule, "assert_equivalent", _TalonParenthesized_assert_equivalent
+)
+
+################################################################################
+# Utilities
+################################################################################
+
+
+def doc_contains_linebreak(doc: Doc) -> bool:
+    """Return ``True`` if ``doc`` contains a line break."""
+    if doc is Line:
+        return True
+    if isinstance(doc, Cat):
+        return any(doc_contains_linebreak(d) for d in doc.docs)
+    if isinstance(doc, Alt):
+        return any(doc_contains_linebreak(d) for d in doc.alts)
+    if isinstance(doc, Nest):
+        return doc_contains_linebreak(doc.doc)
+    if isinstance(doc, Edit):
+        return doc_contains_linebreak(doc.doc)
+    if isinstance(doc, (Row, Table)):
+        return True
+    return False
+
 
 ################################################################################
 # Type Aliases and Variables
@@ -509,9 +557,14 @@ class TalonFormatter:
 
     @format.register
     def _(self, node: TalonParenthesizedExpression) -> Doc:
-        return parens(
-            self.format(self.get_node(node.children, node_type_name=node.type_name))
-        )
+        child = self.get_node(node.children, node_type_name=node.type_name)
+        if isinstance(child, TalonParenthesizedExpression):
+            return self.format(child)
+        child_doc = self.format(child)
+        if doc_contains_linebreak(child_doc):
+            return parens(child_doc)
+        else:
+            return child_doc
 
     @format.register
     def _(self, node: TalonSleepAction) -> Doc:
@@ -611,10 +664,21 @@ class TalonFormatter:
         child = self.get_node(node.children, node_type_name=node.type_name)
         return brackets(self.format(child))
 
+    def _format_parenthesized_rule(
+        self, node: TalonParenthesizedRule, *, allow_shrink: bool = True
+    ) -> Doc:
+        child = self.get_node(node.children, node_type_name=node.type_name)
+        if isinstance(child, TalonParenthesizedRule):
+            return self._format_parenthesized_rule(child, allow_shrink=allow_shrink)
+        child_doc = self.format(child)
+        if allow_shrink and not doc_contains_linebreak(child_doc):
+            return child_doc
+        else:
+            return parens(child_doc)
+
     @format.register
     def _(self, node: TalonParenthesizedRule) -> Doc:
-        child = self.get_node(node.children, node_type_name=node.type_name)
-        return parens(self.format(child))
+        return self._format_parenthesized_rule(node)
 
     @format.register
     def _(self, node: TalonRepeat) -> Doc:
@@ -634,7 +698,13 @@ class TalonFormatter:
 
     @format.register
     def _(self, node: TalonSeq) -> Doc:
-        return Space.join(self.format_children(node.children))
+        docs: list[Doc] = []
+        for child in node.children:
+            if isinstance(child, TalonParenthesizedRule) and len(node.children) > 1:
+                docs.append(self._format_parenthesized_rule(child, allow_shrink=False))
+            else:
+                docs.append(self.format(child))
+        return Space.join(docs)
 
     @format.register
     def _(self, node: TalonStartAnchor) -> Doc:
