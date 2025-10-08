@@ -263,6 +263,8 @@ class TalonFormatter:
         """
         if isinstance(node, TalonComment):
             yield self.format(node)
+            # Don't yield Line here - the parent iterator handles line breaks
+            # Yielding Line here would insert blank lines between consecutive comments
         else:
             # Fallback: preserve original text for unknown node types
             # This allows formatter to continue processing files with
@@ -343,6 +345,12 @@ class TalonFormatter:
 
             # format the .talon file body
             else:
+                # If transitioning from header to body without explicit matches,
+                # flush any buffered comments from the header
+                if in_header:
+                    yield from clear_match_context_comment_buffer()
+                    in_header = False
+
                 # for dynamic alignment:
                 #   buffer short commands and clear the short command buffer
                 #   when anything other kind of node is encountered
