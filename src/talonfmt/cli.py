@@ -91,7 +91,7 @@ from . import __version__, talonfmt
 )
 @click.option(
     "--fail-on-error/--no-fail-on-error",
-    default=False,
+    default=True,
     show_default=True,
 )
 @click.option(
