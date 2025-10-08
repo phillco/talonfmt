@@ -567,6 +567,14 @@ class TalonFormatter:
     @format.register
     def _(self, node: TalonUnaryOperator) -> Doc:
         self.assert_only_comments(node.children)
+        # Preserve parentheses on unary expressions to avoid changing semantics
+        # e.g., -(a or b) should not become -a or b (see issue #12)
+        if isinstance(node.right, TalonParenthesizedExpression):
+            return self.format(node.operator) / parens(
+                self.format(
+                    self.get_node(node.right.children, node_type_name=node.right.type_name)
+                )
+            )
         return self.format(node.operator) / self.format(node.right)
 
     @format.register
