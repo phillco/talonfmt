@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for hardware input declarations (gamepad, deck, face, parrot, noise) via custom tree-sitter-talon fork
 
 ### Fixed
+- Fix comment formatting to prevent parse tree changes (consecutive comments no longer have blank lines inserted)
 - Fix exit() calls to use sys.exit() for PyInstaller compatibility
 - Parser now correctly handles hardware input identifiers with underscores, dots, and special characters (!,/)
 
