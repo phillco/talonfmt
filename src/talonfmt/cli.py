@@ -161,7 +161,7 @@ def cli(
         except ParseError as e:
             sys.stderr.write(str(e))
             if fail_on_error:
-                exit(1)
+                sys.exit(1)
         return None
 
     def format_file(filename: Path) -> None:
@@ -190,9 +190,9 @@ def cli(
             sys.stdout.write(output)
 
     if fail_on_change and files_changed:
-        exit(2)
+        sys.exit(2)
     else:
-        exit(0)
+        sys.exit(0)
 
 
 def main() -> None:
