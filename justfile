@@ -1,3 +1,17 @@
+# Build and install from source (standard install)
+build:
+    python -m build --wheel
+    @echo "✓ Wheel built in dist/"
+
+install: build
+    pip install --force-reinstall --no-deps dist/talonfmt-*.whl
+    @echo "✓ Installed talonfmt from wheel"
+
+# Install in editable mode for development
+install-dev:
+    pip install -e .
+    @echo "✓ Installed talonfmt in editable mode"
+
 # Build static binary with PyInstaller and copy to ~/bin/vendor
 build-static:
     pyinstaller --clean talonfmt-static.spec
@@ -9,16 +23,6 @@ build-static:
 test-static:
     ~/bin/vendor/talonfmt-static /tmp/test_mixed.talon
     @echo "✓ Static binary test passed"
-
-# Install in editable mode for development
-install-dev:
-    pip install -e .
-    @echo "✓ Installed talonfmt in editable mode"
-
-# Build wheel
-build-wheel:
-    python -m build --wheel
-    @echo "✓ Wheel built in dist/"
 
 # Run tests
 test:
