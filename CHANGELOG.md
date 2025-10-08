@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add resilient fallback for unknown node types in formatter (preserves original text for unsupported declarations)
+- Add justfile with build, install, build-static, and install-static commands
+- Support for hardware input declarations (gamepad, deck, face, parrot, noise) via custom tree-sitter-talon fork
+
+### Fixed
+- Fix exit() calls to use sys.exit() for PyInstaller compatibility
+- Parser now correctly handles hardware input identifiers with underscores, dots, and special characters (!,/)
+
+### Changed
+- Now uses forked tree-sitter-talon with fixed grammar precedence for hardware declarations
+- Formatter gracefully preserves formatting for declaration types it doesn't yet support
+
 ## [1.10.3] - 2025-10-08
 
 ### Fixed
