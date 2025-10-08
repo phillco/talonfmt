@@ -232,6 +232,9 @@ class TalonFormatter:
     def format(self, node: Node) -> Doc:
         """
         Format any node as a document.
+
+        Falls back to preserving original text for unknown node types,
+        following Talon's philosophy of resilience.
         """
         # NOTE: these should implement format_lines
         if isinstance(
@@ -247,7 +250,8 @@ class TalonFormatter:
         ):
             return cat(self.format_lines(node))
         else:
-            raise TypeError(type(node))
+            # Fallback: preserve original text for unknown node types
+            return Text(node.text)
 
     @singledispatchmethod
     def format_lines(self, node: TalonBlockLevel) -> Iterator[Doc]:
