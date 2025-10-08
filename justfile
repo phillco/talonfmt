@@ -12,11 +12,16 @@ install-dev:
     pip install -e .
     @echo "✓ Installed talonfmt in editable mode"
 
-# Build static binary with PyInstaller and copy to ~/bin/vendor
+# Build static binary with PyInstaller
 build-static:
     pyinstaller --clean talonfmt-static.spec
+    @echo "✓ Static binary built: dist/talonfmt-static"
+    @ls -lh dist/talonfmt-static
+
+# Install static binary to ~/bin/vendor
+install-static: build-static
     cp dist/talonfmt-static ~/bin/vendor/
-    @echo "✓ Static binary built: ~/bin/vendor/talonfmt-static"
+    @echo "✓ Static binary installed: ~/bin/vendor/talonfmt-static"
     @ls -lh ~/bin/vendor/talonfmt-static
 
 # Test the static binary
