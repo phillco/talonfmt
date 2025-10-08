@@ -253,11 +253,18 @@ class TalonFormatter:
     def format_lines(self, node: TalonBlockLevel) -> Iterator[Doc]:
         """
         Format any block-level node as a series of lines.
+
+        Falls back to preserving original text for unknown node types,
+        following Talon's philosophy of resilience.
         """
         if isinstance(node, TalonComment):
             yield self.format(node)
         else:
-            raise TypeError(type(node))
+            # Fallback: preserve original text for unknown node types
+            # This allows formatter to continue processing files with
+            # declarations we don't yet support (e.g., hardware inputs)
+            yield Text(node.text.rstrip())
+            yield Line
 
     def format_children(self, children: Iterable[Node]) -> Iterator[Doc]:
         for child in self.store_comments_with_type(children, node_type=Node):
