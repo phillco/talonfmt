@@ -380,6 +380,10 @@ class TalonFormatter:
         if self.align_short_commands is True:
             yield from clear_short_command_buffer()
 
+        # file ends with only header comments (no matches, no body declarations)
+        # flush any remaining buffered comments
+        yield from clear_match_context_comment_buffer()
+
     ###########################################################################
     # Format: Match Context
     ###########################################################################
