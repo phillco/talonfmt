@@ -1,0 +1,11 @@
+input: |
+  test unary or: user.foo(-(a or b))
+  test unary add: x = -(5 + 3)
+  test unary number: y = -(number_small or 5)
+output: |
+  test unary or:
+      user.foo(-(a or b))
+  test unary add:
+      x = -(5 + 3)
+  test unary number:
+      y = -(number_small or 5)

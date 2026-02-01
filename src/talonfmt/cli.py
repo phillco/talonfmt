@@ -102,7 +102,7 @@ from . import __version__, talonfmt
 @click.version_option(
     version=__version__,
     prog_name="talonfmt",
-    message=f"%(prog)s, version %(version)s",
+    message=f"%(prog)s, version %(version)s (phillco fork)",
 )
 def cli(
     *,

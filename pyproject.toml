@@ -3,11 +3,14 @@ requires = ["setuptools>=45"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "talonfmt"
-version = "1.10.4"
-description = "A code formatter for Talon files"
+name = "talonfmt-pc"
+version = "2.0.0"
+description = "A code formatter for Talon files (Phil Cohen's fork with bug fixes)"
 license = { file = 'LICENSE' }
-authors = [{ name = "Wen Kokke", email = "wenkokke@users.noreply.github.com" }]
+authors = [
+    { name = "Wen Kokke", email = "wenkokke@users.noreply.github.com" },
+    { name = "Phil Cohen", email = "github@pcohen.net" }
+]
 readme = "README.md"
 keywords = ["talon", "formatter"]
 classifiers = [
@@ -45,7 +48,7 @@ test = [
 talonfmt = "talonfmt.cli:cli"
 
 [tool.bumpver]
-current_version = "1.10.4"
+current_version = "2.0.0"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "Bump version {old_version} -> {new_version}"
 commit = true
