@@ -1,9 +1,8 @@
 import io
-import pathlib
 import sys
 import tokenize
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import click
 from tree_sitter_talon import ParseError
@@ -91,7 +90,7 @@ from . import __version__, talonfmt
 )
 @click.option(
     "--fail-on-error/--no-fail-on-error",
-    default=False,
+    default=True,
     show_default=True,
 )
 @click.option(
@@ -102,7 +101,7 @@ from . import __version__, talonfmt
 @click.version_option(
     version=__version__,
     prog_name="talonfmt",
-    message=f"%(prog)s, version %(version)s",
+    message="%(prog)s, version %(version)s (phillco fork)",
 )
 def cli(
     *,
@@ -161,7 +160,7 @@ def cli(
         except ParseError as e:
             sys.stderr.write(str(e))
             if fail_on_error:
-                exit(1)
+                sys.exit(1)
         return None
 
     def format_file(filename: Path) -> None:
@@ -190,9 +189,9 @@ def cli(
             sys.stdout.write(output)
 
     if fail_on_change and files_changed:
-        exit(2)
+        sys.exit(2)
     else:
-        exit(0)
+        sys.exit(0)
 
 
 def main() -> None:

@@ -7,7 +7,7 @@ from tree_sitter_talon import Node, parse
 from .editorconfig import get_indent_size, get_max_line_length
 from .formatter import EmptyMatchContext, TalonFormatter
 
-__version__: str = "1.10.2"
+__version__: str = "2.0.0"
 
 
 def talonfmt(
@@ -95,7 +95,7 @@ def talonfmt(
                 or align_short_commands is not False
             ):
                 if simple_layout == "shortest":
-                    incompatible_options: list[str]
+                    incompatible_options: list[str] = []
                     if align_match_context is not False:
                         incompatible_options.append("--align-match-context")
                     if align_short_commands is not False:
@@ -112,7 +112,7 @@ def talonfmt(
             # Resolve --simple-layout
             if verbose and simple_layout is not None:
                 sys.stderr.write(
-                    f"Warning: incompatible options '--max-line-width' and '--simple-layout'\n"
+                    "Warning: incompatible options '--max-line-width' and '--simple-layout'\n"
                 )
             doc_renderer = SmartDocRenderer(max_line_width=max_line_width)
         return doc_renderer
@@ -135,8 +135,8 @@ def talonfmt(
             ) from None
 
         # assert: formatting twice results in the same output
-        assert formatted == render(
-            ast_for_formatted, verbose=False
-        ), f"Formatting {filename or 'input'} twice gives a different result."
+        assert formatted == render(ast_for_formatted, verbose=False), (
+            f"Formatting {filename or 'input'} twice gives a different result."
+        )
 
     return formatted

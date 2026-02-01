@@ -128,6 +128,19 @@ def _TalonString_assert_equivalent(self: TalonString, other: Node) -> None:
 setattr(TalonString, "assert_equivalent", _TalonString_assert_equivalent)
 
 
+def _TalonCommandDeclaration_assert_equivalent(
+    self: TalonCommandDeclaration, other: Node
+) -> None:
+    assert isinstance(other, TalonCommandDeclaration)
+
+
+setattr(
+    TalonCommandDeclaration,
+    "assert_equivalent",
+    _TalonCommandDeclaration_assert_equivalent,
+)
+
+
 def _TalonParenthesized_assert_equivalent(self: Node, other: Node) -> None:
     assert isinstance(other, Node)
     if isinstance(other, (TalonParenthesizedExpression, TalonParenthesizedRule)):
@@ -219,6 +232,9 @@ class TalonFormatter:
     def format(self, node: Node) -> Doc:
         """
         Format any node as a document.
+
+        Falls back to preserving original text for unknown node types,
+        following Talon's philosophy of resilience.
         """
         # NOTE: these should implement format_lines
         if isinstance(
@@ -234,17 +250,27 @@ class TalonFormatter:
         ):
             return cat(self.format_lines(node))
         else:
-            raise TypeError(type(node))
+            # Fallback: preserve original text for unknown node types
+            return Text(node.text)
 
     @singledispatchmethod
     def format_lines(self, node: TalonBlockLevel) -> Iterator[Doc]:
         """
         Format any block-level node as a series of lines.
+
+        Falls back to preserving original text for unknown node types,
+        following Talon's philosophy of resilience.
         """
         if isinstance(node, TalonComment):
             yield self.format(node)
+            # Don't yield Line here - the parent iterator handles line breaks
+            # Yielding Line here would insert blank lines between consecutive comments
         else:
-            raise TypeError(type(node))
+            # Fallback: preserve original text for unknown node types
+            # This allows formatter to continue processing files with
+            # declarations we don't yet support (e.g., hardware inputs)
+            yield Text(node.text.rstrip())
+            yield Line
 
     def format_children(self, children: Iterable[Node]) -> Iterator[Doc]:
         for child in self.store_comments_with_type(children, node_type=Node):
@@ -319,6 +345,12 @@ class TalonFormatter:
 
             # format the .talon file body
             else:
+                # If transitioning from header to body without explicit matches,
+                # flush any buffered comments from the header
+                if in_header:
+                    yield from clear_match_context_comment_buffer()
+                    in_header = False
+
                 # for dynamic alignment:
                 #   buffer short commands and clear the short command buffer
                 #   when anything other kind of node is encountered
@@ -347,6 +379,10 @@ class TalonFormatter:
         # file ends with a short command, clear the short command buffer
         if self.align_short_commands is True:
             yield from clear_short_command_buffer()
+
+        # file ends with only header comments (no matches, no body declarations)
+        # flush any remaining buffered comments
+        yield from clear_match_context_comment_buffer()
 
     ###########################################################################
     # Format: Match Context
@@ -531,6 +567,14 @@ class TalonFormatter:
     @format.register
     def _(self, node: TalonUnaryOperator) -> Doc:
         self.assert_only_comments(node.children)
+        # Preserve parentheses on unary expressions to avoid changing semantics
+        # e.g., -(a or b) should not become -a or b (see issue #12)
+        if isinstance(node.right, TalonParenthesizedExpression):
+            return self.format(node.operator) / parens(
+                self.format(
+                    self.get_node(node.right.children, node_type_name=node.right.type_name)
+                )
+            )
         return self.format(node.operator) / self.format(node.right)
 
     @format.register
@@ -640,7 +684,10 @@ class TalonFormatter:
                     groups[-1] = groups[-1] / "$"
                 i += 1
                 continue
-            doc = self.format(child)
+            if isinstance(child, TalonParenthesizedRule):
+                doc = self._format_parenthesized_rule(child, allow_shrink=False)
+            else:
+                doc = self.format(child)
             if start_anchor:
                 doc = Text("^") / doc
                 start_anchor = False
