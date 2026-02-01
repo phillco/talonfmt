@@ -1,9 +1,8 @@
 import io
-import pathlib
 import sys
 import tokenize
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import click
 from tree_sitter_talon import ParseError
@@ -102,7 +101,7 @@ from . import __version__, talonfmt
 @click.version_option(
     version=__version__,
     prog_name="talonfmt",
-    message=f"%(prog)s, version %(version)s (phillco fork)",
+    message="%(prog)s, version %(version)s (phillco fork)",
 )
 def cli(
     *,
